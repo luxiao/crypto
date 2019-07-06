@@ -1,4 +1,5 @@
 # coding: utf-8
+import os
 import binascii
 from collections import Counter
 from base64 import b64encode as b6e, b64decode as b6d
@@ -39,6 +40,12 @@ def s1c4():
             print '----------------', key
     # answer: Now that the party is jumping
 
+def single_char_xor(binary_data):
+    for key in range(32, 128):
+        st = ''.join(chr(ord(num) ^ key) for num in binary_data)
+        print st
+        print '----------------', key, chr(key)
+
 
 def xor_repeat_key(s, k):
     target = ''
@@ -53,7 +60,7 @@ def chunks(l, n=2):
     for i in range(0, len(l), n):
         yield l[i: i+n]
 
-# chuncks=lambda l, n: (l[i: i+n] for i in range(0, len(l), n))
+chunks=lambda l, n: [l[i: i+n] for i in range(0, len(l), n)]
 
 
 def decrypt_repeat_key(hexs, k):
@@ -100,15 +107,73 @@ def hamming_dis(str1, str2):
     return Counter(bin(int1 ^ int2))['1']
 
 
+def guess_keys_2(ss):
+    result = [999 for i in range(43)]
+    normal = []
+    for s in range(2, 43):
+        str1 = ss[:s]
+        str2 = ss[s:s+s]
+        nor = float(hamming_dis(str1, str2))/s
+        result.insert(s, hamming_dis(str1, str2)*1.0/s)
+        normal.append((s, nor))
+    return sorted(normal, key=lambda (_, y): y)
+
+def guess_keys_4(ss):
+    normal = []
+    for s in range(2, 43):
+        str1 = ss[:s]
+        str2 = ss[s:s+s]
+        str3 = ss[2*s:3*s]
+        str4 = ss[3*s:4*s]
+        nor = float(hamming_dis(str1, str2)+hamming_dis(str2, str3)+
+                    hamming_dis(str3, str4))/(s*3)
+        normal.append((s, nor))
+    return sorted(normal, key=lambda (_, y): y)
+
+def single_byte_key(blocks):
+    for key in range(32, 127):
+        plain = []
+        for block in blocks:
+            tmp_block = []
+            for ss in block:
+                sc = ord(ss) if ss else 0
+                tmp_block.append(chr(sc ^ key))
+            plain.append(tmp_block)
+        print plain
+
+def juzhen_t(raw_blocks, key_size):
+    t_blocks = []
+    for i in range(key_size):
+        t_blocks.append([])
+        for blocks in raw_blocks:
+            t_blocks[i].append(blocks[i:i+1])
+    return
+
+def test_single(raw_bytes, key_size):
+    raw_blocks = chunks(raw_bytes, key_size)
+    t_blocks = []
+    for i in range(key_size):
+        t_blocks.append([])
+        for blocks in raw_blocks:
+            t_blocks[i].append(blocks[i:i+1])
+    print 'key size', key_size, 'block len', len(t_blocks)
+    single_byte_key(t_blocks)
+
+
 def s1c6():
     with open('s1c6.txt') as input:
         raw = ''.join([line.strip() for line in input.readlines()])
-        print raw
-
+    raw_bytes = b6d(raw)
+    key_size = guess_keys_2(raw_bytes)
+    #print 'guess keysize by 2 block is', key_size
+    key_size = guess_keys_4(raw_bytes)
+    #print 'guess keysize by 4 block is', key_size
+    for key_size in (2, 3, 5, 18):
+        test_single(raw_bytes, key_size)
 
 def main():
-    s1c5()
-
+    s1c6()
+    
 
 if __name__ == '__main__':
     main()
