@@ -1,4 +1,4 @@
 crypto
 ===
 
-some crypto stuff
+some Alice&Bob's sneaky stuff

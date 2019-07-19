@@ -141,13 +141,15 @@ def single_byte_key(blocks):
             plain.append(tmp_block)
         print plain
 
+
 def juzhen_t(raw_blocks, key_size):
     t_blocks = []
-    for i in range(key_size):
+    for i in range(len(raw_blocks[0])):
         t_blocks.append([])
         for blocks in raw_blocks:
-            t_blocks[i].append(blocks[i:i+1])
-    return
+            t_blocks[i].extend(blocks[i:i+1])
+    return t_blocks
+
 
 def test_single(raw_bytes, key_size):
     raw_blocks = chunks(raw_bytes, key_size)
